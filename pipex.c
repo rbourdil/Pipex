@@ -2,9 +2,7 @@
 
 int	main(int argc, char *argv[], char *envp[]) {
 	int		pipefd[2];
-	int		wstatus;
-	pid_t	cpid1;
-	pid_t	cpid2;
+	pid_t	cpid;
 
 	if (argc != 5)
 	{
@@ -16,31 +14,30 @@ int	main(int argc, char *argv[], char *envp[]) {
 		perror("pipe");
 		exit(EXIT_FAILURE);
 	}
-	wstatus = 1;
-	cpid1 = fork();
-	if (cpid1 == -1)
+	cpid = fork();
+	if (cpid == -1)
 	{
 		close(pipefd[0]);
 		close(pipefd[1]);
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
-	if (cpid1 == 0)
+	if (cpid == 0)
 		write_pipe(pipefd, argv, envp);
 	else
 		close(pipefd[1]);
-	cpid2 = fork();
-	if (cpid2 == -1)
+	cpid = fork();
+	if (cpid == -1)
 	{
 		close(pipefd[0]);
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
-	if (cpid2 == 0)
+	if (cpid == 0)
 		read_pipe(pipefd, argv, envp);
 	else
 		close(pipefd[0]);
-	waitpid(cpid1, &wstatus, 0);
-	waitpid(cpid2, &wstatus, 0);
+	wait(NULL);
+	wait(NULL);
 	return (0);
 }

@@ -46,7 +46,7 @@ void	write_pipe(int pipefd[2], char *argv[], char *envp[])
 	if (fd == -1)
 	{
 		close(pipefd[1]);
-		perror("open");
+		perror("infile");
 		exit(EXIT_FAILURE);	
 	}
 	if (dup2(fd, STDIN_FILENO) == -1)
@@ -85,7 +85,7 @@ void	read_pipe(int pipefd[2], char *argv[], char *envp[])
 	if (fd == -1)
 	{
 		close(pipefd[0]);
-		perror("open");
+		perror("outfile");
 		exit(EXIT_FAILURE);	
 	}
 	if (dup2(fd, STDOUT_FILENO) == -1)
