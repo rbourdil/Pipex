@@ -63,6 +63,8 @@ void	write_pipe(int pipefd[2], char *argv[], char *envp[])
 		perror("dup2");
 		exit(EXIT_FAILURE);
 	}
+	close(fd);
+	close(pipefd[1]);
 	execve(find_path(*params, paths), params, envp);  
 	close(pipefd[1]);
 	close(fd);
@@ -100,6 +102,8 @@ void	read_pipe(int pipefd[2], char *argv[], char *envp[])
 		perror("dup2");
 		exit(EXIT_FAILURE);
 	}
+	close(fd);
+	close(pipefd[0]);
 	execve(find_path(*params, paths), params, envp);  
 	close(pipefd[0]);
 	close(fd);
