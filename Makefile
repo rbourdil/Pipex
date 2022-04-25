@@ -1,6 +1,6 @@
 NAME = pipex
 
-OBJS = pipex.o io_pipe.o
+OBJS = pipex.o io_pipe.o free_split.o
 
 HEAD = pipex.h
 

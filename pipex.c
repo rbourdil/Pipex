@@ -6,7 +6,7 @@ int	main(int argc, char *argv[], char *envp[]) {
 
 	if (argc != 5)
 	{
-		write(STDOUT_FILENO, "Invalid number of arguments\n", 28);
+		write(STDERR_FILENO, "Invalid number of arguments\n", 28);
 		exit(EXIT_FAILURE);
 	}
 	if (pipe(pipefd) == -1)

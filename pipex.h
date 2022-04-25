@@ -11,5 +11,6 @@
 
 void	write_pipe(int pipefd[2], char *argv[], char *envp[]);
 void	read_pipe(int pipefd[2], char *argv[], char *envp[]);
+void	free_split(char **split);
 
 #endif
