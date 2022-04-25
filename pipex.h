@@ -6,11 +6,24 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "libft.h"
 
-void	write_pipe(int pipefd[2], char *argv[], char *envp[]);
-void	read_pipe(int pipefd[2], char *argv[], char *envp[]);
+#include <string.h>
+#include <errno.h>
+
+typedef struct s_pipex {
+	int		pipefd[2];
+	int		fd;
+	char	*path;
+	char	**opt;
+}	t_pipex;
+
+void	init_pipex(t_pipex *pipex);
+
+void	write_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex);
+void	read_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex);
+
 void	free_split(char **split);
+void	free_pipex(t_pipex *pipex, const char *err_msg);
 
 #endif

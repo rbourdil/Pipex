@@ -1,14 +1,25 @@
 #include "pipex.h"
 
-static char	*test_paths(char *cmd, char **dirs)
+static char	*test_paths(char *cmd, char **dirs, t_pipex *pipex)
 {
+	int		errnum;
 	char	*tmp;
 	char	*path;
 
 	while (*dirs != NULL)
 	{
-		tmp = ft_strjoin(*dirs, "/");
-		path = ft_strjoin(tmp, cmd);
+		if ((tmp = ft_strjoin(*dirs, "/")) == NULL)
+		{
+			free_split(dirs);
+			free_pipex(pipex, strerror(errno));
+		}
+		if ((path = ft_strjoin(tmp, cmd)) == NULL)
+		{
+			errnum = errno;
+			free(tmp);
+			free_split(dirs);
+			free_pipex(pipex, strerror(errnum));
+		}
 		free(tmp);
 		if (access(path, X_OK) == 0)
 			return (path);
@@ -18,7 +29,7 @@ static char	*test_paths(char *cmd, char **dirs)
 	return (NULL);
 }
 
-static char	*get_path(char *cmd, char *envp[])
+static char	*get_path(char *cmd, char *envp[], t_pipex *pipex)
 {
 	char	**dirs;
 	char	*path;
@@ -35,115 +46,50 @@ static char	*get_path(char *cmd, char *envp[])
 		}
 		envp++;
 	}
-	dirs = ft_split(*envp, ':');
-	//add error handling
-	path = test_paths(cmd, dirs);
+	if ((dirs = ft_split(*envp, ':')) == NULL)
+		free_pipex(pipex, strerror(errno));
+	path = test_paths(cmd, dirs, pipex);
 	free_split(dirs);
 	return (path);
 }
 
-void	write_pipe(int pipefd[2], char *argv[], char *envp[])
+void	write_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex)
 {
 	int		fd;
-	char	*path;
-	char	**opt;
 	
-	close(pipefd[0]);
-	if ((opt = ft_split(argv[2], ' ')) == NULL)
-	{
-		close(pipefd[1]);
-		perror("ft_split");
-		exit(EXIT_FAILURE);
-	}
-	if ((path = get_path(opt[0], envp)) == NULL)
-	{
-		close(pipefd[1]);
-		free_split(opt);
-		write(STDERR_FILENO, "Invalid command\n", 16);
-		exit(EXIT_FAILURE);
-	}
+	close(pipex->pipefd[0]);
+	if ((pipex->opt = ft_split(argv[2], ' ')) == NULL)
+		free_pipex(pipex, strerror(errno));
+	if ((pipex->path = get_path(pipex->opt[0], envp, pipex)) == NULL)
+		free_pipex(pipex, "Invalid_path");
 	if ((fd = open(argv[1], O_RDONLY)) == -1)
-	{
-		close(pipefd[1]);
-		free_split(opt);
-		free(path);
-		perror("open");
-		exit(EXIT_FAILURE);
-	}
+		free_pipex(pipex, strerror(errno));
 	if (dup2(fd, STDIN_FILENO) == -1)
-	{
-		close(pipefd[1]);
-		free_split(opt);
-		free(path);
-		close(fd);
-		perror("dup2");
-		exit(EXIT_FAILURE);
-	}
+		free_pipex(pipex, strerror(errno));
 	close(fd);
 	if (dup2(pipefd[1], STDOUT_FILENO) == -1)
-	{
-		close(pipefd[1]);
-		free_split(opt);
-		free(path);
-		perror("dup2");
-		exit(EXIT_FAILURE);
-	}
-	close(pipefd[1]);
-	execve(path, opt, envp);
-	free_split(opt);
-	free(path);
-	perror("execve");
-	exit(EXIT_FAILURE);
+		free_pipex(pipex, strerror(errno));
+	close(pipex->pipefd[1]);
+	execve(pipex->path, pipex->opt, envp);
+	free_pipex(pipex, strerror(errno));
 }
 
-void	read_pipe(int pipefd[2], char *argv[], char *envp[])
+void	read_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex)
 {
 	int		fd;
-	char	*path;
-	char	**opt;
 	
-	if ((opt = ft_split(argv[3], ' ')) == NULL)
-	{
-		close(pipefd[0]);
-		perror("ft_split");
-		exit(EXIT_FAILURE);
-	}
-	if ((path = get_path(opt[0], envp)) == NULL)
-	{
-		close(pipefd[0]);
-		free_split(opt);
-		write(STDERR_FILENO, "Invalid command\n", 16);
-		exit(EXIT_FAILURE);
-	}
+	if ((pipex->opt = ft_split(argv[3], ' ')) == NULL)
+		free_pipex(pipex, strerror(errno));
+	if ((pipex->path = get_path(pipex->opt[0], envp, pipex)) == NULL)
+		free_pipex(pipex, "Invalid path");
 	if ((fd = open(argv[4], O_WRONLY)) == -1)
-	{
-		free_split(opt);
-		free(path);
-		perror("open");
-		exit(EXIT_FAILURE);
-	}
+		free_pipex(pipex, strerror(errno));
 	if (dup2(fd, STDOUT_FILENO) == -1)
-	{
-		close(pipefd[0]);
-		free_split(opt);
-		free(path);
-		close(fd);
-		perror("dup2");
-		exit(EXIT_FAILURE);
-	}
+		free_pipex(pipex, strerror(errno));
 	close(fd);
 	if (dup2(pipefd[0], STDIN_FILENO) == -1)
-	{
-		close(pipefd[0]);
-		free_split(opt);
-		free(path);
-		perror("dup2");
-		exit(EXIT_FAILURE);
-	}
-	close(pipefd[0]);
-	execve(path, opt, envp);
-	free_split(opt);
-	free(path);
-	perror("execve");
-	exit(EXIT_FAILURE);
+		free_pipex(pipex, strerror(errno));
+	close(pipex->pipefd[0]);
+	execve(pipex->path, pipex->opt, envp);
+	free_pipex(pipex, strerror(errno));
 }
