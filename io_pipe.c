@@ -1,95 +1,41 @@
 #include "pipex.h"
 
-static char	*test_paths(char *cmd, char **dirs, t_pipex *pipex)
+void	read_pipe(t_pipex *pipex, int argc, char *argv[], char *envp[])
 {
-	int		errnum;
-	char	*tmp;
-	char	*path;
-
-	while (*dirs != NULL)
-	{
-		if ((tmp = ft_strjoin(*dirs, "/")) == NULL)
-		{
-			free_split(dirs);
-			free_pipex(pipex, strerror(errno));
-		}
-		if ((path = ft_strjoin(tmp, cmd)) == NULL)
-		{
-			errnum = errno;
-			free(tmp);
-			free_split(dirs);
-			free_pipex(pipex, strerror(errnum));
-		}
-		free(tmp);
-		if (access(path, X_OK) == 0)
-			return (path);
-		free(path);
-		dirs++;
-	}
-	return (NULL);
-}
-
-static char	*get_path(char *cmd, char *envp[], t_pipex *pipex)
-{
-	char	**dirs;
-	char	*path;
-
-	if (access(cmd, X_OK) == 0)
-		return (cmd);
-	while (*envp != NULL)
-	{
-		if (ft_strncmp(*envp, "PATH", 4) == 0)
-		{
-			while (*(*envp)++ != '=')
-				;
-			break ;
-		}
-		envp++;
-	}
-	if ((dirs = ft_split(*envp, ':')) == NULL)
-		free_pipex(pipex, strerror(errno));
-	path = test_paths(cmd, dirs, pipex);
-	free_split(dirs);
-	return (path);
-}
-
-void	write_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex)
-{
-	int		fd;
-	
-	close(pipex->pipefd[0]);
-	if ((pipex->opt = ft_split(argv[2], ' ')) == NULL)
-		free_pipex(pipex, strerror(errno));
-	if ((pipex->path = get_path(pipex->opt[0], envp, pipex)) == NULL)
-		free_pipex(pipex, "Invalid_path");
-	if ((fd = open(argv[1], O_RDONLY)) == -1)
-		free_pipex(pipex, strerror(errno));
-	if (dup2(fd, STDIN_FILENO) == -1)
-		free_pipex(pipex, strerror(errno));
-	close(fd);
-	if (dup2(pipefd[1], STDOUT_FILENO) == -1)
-		free_pipex(pipex, strerror(errno));
 	close(pipex->pipefd[1]);
-	execve(pipex->path, pipex->opt, envp);
-	free_pipex(pipex, strerror(errno));
+	pipex->fd = open(argv[argc - 1], O_RDWR | O_CREAT | O_TRUNC, \
+	S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+	if (pipex->fd == -1)
+		clean(pipex, "open", E_MSG | E_EXIT);
+	if (dup2(pipex->fd, STDOUT_FILENO) == -1)
+		clean(pipex, "dup2", E_MSG | E_FD | E_PIPE | E_EXIT);
+	if (dup2(pipex->pipefd[0], STDIN_FILENO) == -1)
+		clean(pipex, "dup2", E_MSG | E_FD | E_PIPE | E_EXIT);
+	clean(pipex, NULL, E_FD | E_PIPE);
+	pipex->opt = ft_split(argv[3], ' ');
+	pipex->cmd = get_path(pipex->opt[0], envp);
+	if (pipex->cmd == NULL || pipex->opt == NULL)
+		clean(pipex, NULL, E_CMD | E_OPT | E_EXIT);
+	execve(pipex->cmd, pipex->opt, envp);
+	clean(pipex, "execve", E_MSG | E_CMD | E_OPT | E_EXIT);
 }
 
-void	read_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex)
+void	write_pipe(t_pipex *pipex, int argc, char *argv[], char *envp[])
 {
-	int		fd;
-	
-	if ((pipex->opt = ft_split(argv[3], ' ')) == NULL)
-		free_pipex(pipex, strerror(errno));
-	if ((pipex->path = get_path(pipex->opt[0], envp, pipex)) == NULL)
-		free_pipex(pipex, "Invalid path");
-	if ((fd = open(argv[4], O_WRONLY)) == -1)
-		free_pipex(pipex, strerror(errno));
-	if (dup2(fd, STDOUT_FILENO) == -1)
-		free_pipex(pipex, strerror(errno));
-	close(fd);
-	if (dup2(pipefd[0], STDIN_FILENO) == -1)
-		free_pipex(pipex, strerror(errno));
-	close(pipex->pipefd[0]);
-	execve(pipex->path, pipex->opt, envp);
-	free_pipex(pipex, strerror(errno));
+		(void)argc;
+		close(pipex->pipefd[0]);
+		pipex->fd = open(argv[1], O_RDONLY);
+		if (pipex->fd == -1)
+			clean(pipex, "open", E_MSG | E_EXIT);
+		if (dup2(pipex->fd, STDIN_FILENO) == -1)
+			clean(pipex, "dup2", E_MSG | E_FD | E_PIPE | E_EXIT);
+		if (dup2(pipex->pipefd[1], STDOUT_FILENO) == -1)
+			clean(pipex, "dup2", E_MSG | E_FD | E_PIPE | E_EXIT);
+		clean(pipex, NULL, E_FD | E_PIPE);
+		pipex->opt = ft_split(argv[2], ' ');
+		pipex->cmd = get_path(pipex->opt[0], envp);
+		if (pipex->cmd == NULL || pipex->opt == NULL)
+			clean(pipex, "path", E_CMD | E_OPT | E_EXIT | E_MSG);
+		execve(pipex->cmd, pipex->opt, envp);
+		clean(pipex, "execve", E_MSG | E_CMD | E_OPT | E_EXIT);
 }

@@ -1,34 +1,36 @@
 NAME = pipex
 
-OBJS = pipex.o io_pipe.o free.o init_pipex.o
+OBJS = pipex.o path.o io_pipe.o free.o error.o
 
 HEAD = pipex.h
 
-LIBS = libft.a
+SUBDIRS = libft
 
 CC = gcc
 
-FLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 
-FILES = infile outfile
-
-all:		$(NAME) $(FILES)
-
-$(FILES):
-			touch $(FILES)
+all:		$(SUBDIRS) $(NAME)
 
 $(NAME):	$(OBJS)
-			$(CC) $(OBJS) $(LIBS) -o $(NAME)
+			$(CC) $(OBJS) -Llibft -lft -o $(NAME)
+
+$(SUBDIRS):
+			make -C $@	
 
 $(OBJS):	%.o:%.c $(HEAD)
-			$(CC) $(FLAGS) -c $< -o $@
+			$(CC) $(CFLAGS) -Ilibft -c $< -o $@
 
-clean:
-			rm -f $(OBJS) $(FILES)
+clean:		
+			rm -f $(OBJS)
+			make clean -C libft
 
-fclean:		clean
+fclean:			
+			rm -f $(OBJS)
 			rm -f $(NAME)
+			make fclean -C libft
+				
 
 re:			fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re $(SUBDIRS)

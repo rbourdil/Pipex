@@ -1,29 +1,35 @@
 #ifndef PIPEX_H
 #define PIPEX_H
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fcntl.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <wait.h>
+#include <unistd.h>
 #include "libft.h"
 
-#include <string.h>
-#include <errno.h>
+#define E_EXIT 0x1
+#define E_PIPE 0x2
+#define E_FD 0x4
+#define E_CMD 0x8
+#define E_OPT 0x10
+#define E_MSG 0x20
 
 typedef struct s_pipex {
 	int		pipefd[2];
 	int		fd;
-	char	*path;
+	char	*cmd;
 	char	**opt;
 }	t_pipex;
 
-void	init_pipex(t_pipex *pipex);
+char	*get_path(char *cmd, char *envp[]);
 
-void	write_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex);
-void	read_pipe(int pipefd[2], char *argv[], char *envp[], t_pipex *pipex);
+void	read_pipe(t_pipex *pipex, int argc, char *arv[], char *envp[]);
+void	write_pipe(t_pipex *pipex, int argc, char *argv[], char *envp[]);
 
 void	free_split(char **split);
-void	free_pipex(t_pipex *pipex, const char *err_msg);
+
+void	clean(t_pipex *pipex, const char *msg, int options);
 
 #endif
