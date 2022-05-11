@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   path.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rbourdil <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/05/11 15:15:00 by rbourdil          #+#    #+#             */
+/*   Updated: 2022/05/11 15:48:17 by rbourdil         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "pipex.h"
 
 char	*valid_path(char *cmd, char **paths_list)
@@ -5,6 +17,8 @@ char	*valid_path(char *cmd, char **paths_list)
 	char	*tmp;
 	char	*path;
 
+	if (access(cmd, X_OK) == 0)
+		return (cmd);
 	while (*paths_list != NULL)
 	{
 		tmp = ft_strjoin(*paths_list, "/");

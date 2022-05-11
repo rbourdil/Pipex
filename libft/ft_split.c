@@ -6,7 +6,7 @@
 /*   By: rbourdil <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/04 14:20:36 by rbourdil          #+#    #+#             */
-/*   Updated: 2021/12/20 17:30:05 by rbourdil         ###   ########.fr       */
+/*   Updated: 2022/05/11 15:43:58 by rbourdil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ void	ft_clear(char **split_str)
 	while (*split_str != NULL)
 	{
 		free(*split_str);
-		*split_str = NULL;
 		split_str++;
 	}
 }
@@ -94,7 +93,6 @@ char	**ft_split(char const *s, char c)
 		{
 			ft_clear(split_str);
 			free(split_str);
-			split_str = NULL;
 			return (NULL);
 		}
 		i++;
