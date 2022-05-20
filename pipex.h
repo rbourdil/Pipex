@@ -6,7 +6,7 @@
 /*   By: rbourdil <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/11 15:17:08 by rbourdil          #+#    #+#             */
-/*   Updated: 2022/05/11 17:38:40 by rbourdil         ###   ########.fr       */
+/*   Updated: 2022/05/20 17:08:01 by rbourdil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,29 +20,26 @@
 # include <sys/wait.h>
 # include <unistd.h>
 # include "libft.h"
+# include "get_next_line.h"
 
-# define E_EXIT 0x1
-# define E_PIPE 0x2
-# define E_FD 0x4
-# define E_CMD 0x8
-# define E_OPT 0x10
-# define E_MSG 0x20
-# define E_PERR 0x40
+# define TMP_FILE "jkfjbewkj293y823g23r823f802083h238h09e32hh"
+# define E_PERR 0x01
+# define E_FDS 0x02
+# define E_MSG 0x04
+# define E_EXIT 0x08
 
-typedef struct s_pipex {
-	int		pipefd[2];
-	int		fd;
-	char	*cmd;
-	char	**opt;
-}	t_pipex;
+typedef struct s_fdsmap {
+	int	*map;
+	int	size;
+}	t_fdsmap;
+
+void	exec_child(t_fdsmap *fds, char *argv[], char *envp[], int i);
 
 char	*get_path(char *cmd, char *envp[]);
 
-void	read_pipe(t_pipex *pipex, char *arv[], char *envp[]);
-void	write_pipe(t_pipex *pipex, char *argv[], char *envp[]);
-
 void	free_split(char **split);
+void	close_fds(t_fdsmap *fds);
 
-void	clean(t_pipex *pipex, const char *msg, int options);
+void	clean(const char *err_msg, t_fdsmap *fds, int options);
 
 #endif

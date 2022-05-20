@@ -6,35 +6,26 @@
 /*   By: rbourdil <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/11 15:13:15 by rbourdil          #+#    #+#             */
-/*   Updated: 2022/05/11 17:46:34 by rbourdil         ###   ########.fr       */
+/*   Updated: 2022/05/20 17:07:06 by rbourdil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	clean(t_pipex *pipex, const char *msg, int options)
+/* prints an error message, closes all open files descriptors and exits */
+
+void	clean(const char *err_msg, t_fdsmap *fds, int options)
 {
-	if ((E_PERR & options) != 0)
-		perror(msg);
-	if ((E_MSG & options) != 0)
-		write(STDERR_FILENO, msg, ft_strlen(msg));
-	if ((E_PIPE & options) != 0)
+	if ((options & E_PERR) != 0)
+		perror(err_msg);
+	if ((options & E_FDS) != 0)
 	{
-		close(pipex->pipefd[0]);
-		close(pipex->pipefd[1]);
+		close_fds(fds);
+		free(fds->map);
+		fds->map = NULL;
 	}
-	if ((E_FD & options) != 0)
-		close(pipex->fd);
-	if ((E_CMD & options) != 0)
-	{
-		free(pipex->cmd);
-		pipex->cmd = NULL;
-	}
-	if ((E_OPT & options) != 0)
-	{
-		free_split(pipex->opt);
-		pipex->opt = NULL;
-	}
-	if ((E_EXIT & options) != 0)
+	if ((options & E_MSG) != 0)
+		write(STDERR_FILENO, err_msg, ft_strlen(err_msg));
+	if ((options & E_EXIT) != 0)
 		exit(EXIT_FAILURE);
 }

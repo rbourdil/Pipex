@@ -1,38 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   free.c                                             :+:      :+:    :+:   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rbourdil <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/05/11 15:13:58 by rbourdil          #+#    #+#             */
-/*   Updated: 2022/05/17 19:06:27 by rbourdil         ###   ########.fr       */
+/*   Created: 2021/12/11 14:40:10 by rbourdil          #+#    #+#             */
+/*   Updated: 2022/05/20 14:06:38 by rbourdil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex.h"
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
 
-void	free_split(char **split)
-{
-	char	**p;
+#ifndef BUFFER_SIZE
+# define BUFFER_SIZE 1024
+#endif
 
-	if (split == NULL)
-		return ;
-	p = split;
-	while (*p != NULL)
-		free(*p++);
-	free(split);
-}
+# include <unistd.h>
+# include <stdlib.h>
 
-void	close_fds(t_fdsmap *fds)
-{
-	int	i;
+char	*get_next_line(int fd);
+int		ft_strlen_gnl(char *s);
+char	*ft_strjoin_gnl(char *s1, char *s2);
+char	*ft_strchr_gnl(char *s);
+char	*ft_strdup_gnl(char *s);
+char	*extract_line_gnl(char **plo);
 
-	i = 0;
-	while (i < fds->size)
-	{
-		if (fds->map[i] >= 0)
-			close(fds->map[i]);
-		i++;
-	}
-}
+#endif
